@@ -2,21 +2,45 @@
 import sqlite3
 import sys
 
+# The CHECK constraints and the unique index are a second line of defence: even if the
+# Python code has a bug, the database refuses negative stock, zero-quantity cart rows and
+# two orders with the same request id.
 SCHEMA = '''
-CREATE TABLE IF NOT EXISTS products (sku TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL, stock INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS saved_cart (user_id TEXT NOT NULL, sku TEXT NOT NULL, quantity INTEGER NOT NULL);
-CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, amount REAL, status TEXT, request_id TEXT);
+CREATE TABLE IF NOT EXISTS products (
+    sku TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    price REAL NOT NULL CHECK (price >= 0),
+    stock INTEGER NOT NULL CHECK (stock >= 0)
+);
+CREATE TABLE IF NOT EXISTS saved_cart (
+    user_id TEXT NOT NULL,
+    sku TEXT NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    PRIMARY KEY (user_id, sku)
+);
+CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    amount REAL NOT NULL CHECK (amount >= 0),
+    status TEXT NOT NULL,
+    request_id TEXT NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_request_id ON orders (request_id);
 '''
 
 
 def initialize(db_path='shop.db'):
-    with sqlite3.connect(db_path) as conn:
-        conn.executescript(SCHEMA)
-        conn.executemany('INSERT OR IGNORE INTO products VALUES (?, ?, ?, ?)', [
-            ('LAP-01', 'Laptop', 999.99, 5),
-            ('MOU-01', 'Wireless mouse', 29.95, 20),
-            ('USB-01', 'USB cable', 9.99, 50),
-        ])
+    conn = sqlite3.connect(db_path)
+    try:
+        with conn:  # commits on success, rolls back on error
+            conn.executescript(SCHEMA)
+            conn.executemany('INSERT OR IGNORE INTO products VALUES (?, ?, ?, ?)', [
+                ('LAP-01', 'Laptop', 999.99, 5),
+                ('MOU-01', 'Wireless mouse', 29.95, 20),
+                ('USB-01', 'USB cable', 9.99, 50),
+            ])
+    finally:
+        conn.close()  # "with conn" alone does not close the connection
 
 
 if __name__ == '__main__':
