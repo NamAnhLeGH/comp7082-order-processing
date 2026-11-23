@@ -1,5 +1,7 @@
 # Order-processing system: reliable programming lab
 
+[![tests](https://github.com/NamAnhLeGH/comp7082-order-processing/actions/workflows/tests.yml/badge.svg)](https://github.com/NamAnhLeGH/comp7082-order-processing/actions/workflows/tests.yml)
+
 COMP 7082, Security and Reliable Programming. Nam Anh Le, A01377048.
 
 The starter application had intentional defects. This repository holds the corrected code, the

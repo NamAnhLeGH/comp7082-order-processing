@@ -100,4 +100,7 @@ the happy path.
 Workflow: `.github/workflows/tests.yml`. It runs on every push and pull request, on Python 3.10
 and 3.13, installs `requirements.txt` and runs `python -m pytest -q`.
 
-Successful run: CI_RUN_LINK
+Successful run: https://github.com/NamAnhLeGH/comp7082-order-processing/actions/runs/45094093747
+(both jobs green, 19 seconds).
+
+![Successful GitHub Actions run](docs/github-actions-success.jpg)
